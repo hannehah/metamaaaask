@@ -1,30 +1,51 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Auction dApp</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <title>ChainBid — Blockchain Auction</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1 id="itemName">Загрузка...</h1>
-        <p id="description"></p>
-        <p><strong>Окончание:</strong> <span id="endTime"></span></p>
-        <p><strong>Текущая ставка:</strong> <span id="highestBid"></span> ETH от <span id="highestBidder"></span></p>
-        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
-        <p><strong>Владелец:</strong> <span id="owner"></span></p>
-        <button id="connectBtn">Подключить MetaMask</button>
-        <div class="bid-section">
-            <input id="amount" type="number" step="0.001" placeholder="ETH для ставки">
-            <button id="bidBtn">Сделать ставку</button>
+
+<div class="container">
+    <h1>⚖️ ChainBid</h1>
+    <p class="subtitle">Децентрализованный аукцион на Ethereum</p>
+
+    <button id="connectBtn">🔗 Подключить MetaMask</button>
+
+    <div class="card">
+        <h2 id="itemName">Лот</h2>
+        <p id="description">Описание</p>
+
+        <div class="info">
+            <div>
+                <span>⏰ До окончания:</span>
+                <strong id="timeLeft">—</strong>
+            </div>
+            <div>
+                <span>🏆 Лучшая ставка:</span>
+                <strong id="highestBid">— ETH</strong>
+            </div>
+            <div>
+                <span>👤 Лидер:</span>
+                <strong id="highestBidder">—</strong>
+            </div>
         </div>
-        <button id="withdrawPendingBtn">Вернуть средства (если перебиты)</button>
-        <button id="endAuctionBtn">Завершить аукцион (только владелец)</button>
-        <h3>История ставок:</h3>
-        <ul id="bidsList"></ul>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.0/ethers.umd.min.js"></script>
-    <script src="app.js"></script>
+
+    <div class="card">
+        <h3>💰 Сделать ставку</h3>
+        <input type="number" id="bidAmount" placeholder="ETH" />
+        <button id="bidBtn">Сделать ставку</button>
+    </div>
+
+    <div class="card">
+        <h3>📜 История ставок</h3>
+        <ul id="history"></ul>
+    </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
