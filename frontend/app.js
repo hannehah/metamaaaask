@@ -42,49 +42,65 @@ const abi = [
     "type": "function",
     "name": "description",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "outputs": [
+      { "name": "", "type": "string", "internalType": "string" }
+    ],
     "stateMutability": "view"
   },
   {
     "type": "function",
     "name": "endTime",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
     "stateMutability": "view"
   },
   {
     "type": "function",
     "name": "highestBid",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
     "stateMutability": "view"
   },
   {
     "type": "function",
     "name": "highestBidder",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "outputs": [
+      { "name": "", "type": "address", "internalType": "address" }
+    ],
     "stateMutability": "view"
   },
   {
     "type": "function",
     "name": "itemName",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "outputs": [
+      { "name": "", "type": "string", "internalType": "string" }
+    ],
     "stateMutability": "view"
   },
   {
     "type": "function",
     "name": "owner",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "outputs": [
+      { "name": "", "type": "address", "internalType": "address" }
+    ],
     "stateMutability": "view"
   },
   {
     "type": "function",
     "name": "pendingReturns",
-    "inputs": [{ "name": "", "type": "address", "internalType": "address" }],
-    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "inputs": [
+      { "name": "", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
     "stateMutability": "view"
   },
   {
@@ -99,11 +115,9 @@ const abi = [
 const connectBtn = document.getElementById("connectBtn");
 const bidBtn = document.getElementById("bidBtn");
 
-// Отключаем кнопку ставки изначально
 bidBtn.disabled = true;
 bidBtn.innerText = "Подключите кошелёк";
 
-// Подключение кошелька
 connectBtn.onclick = async () => {
     if (!window.ethereum) {
         alert("Установите MetaMask или другой Web3-кошелёк!");
@@ -114,9 +128,9 @@ connectBtn.onclick = async () => {
         connectBtn.disabled = true;
         connectBtn.innerText = "Подключение...";
 
-        provider = new ethers.BrowserProvider(window.ethereum);
+        provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
-        signer = await provider.getSigner();
+        signer = provider.getSigner();
 
         contract = new ethers.Contract(contractAddress, abi, signer);
 
@@ -134,20 +148,18 @@ connectBtn.onclick = async () => {
     }
 };
 
-// Основная функция загрузки данных аукциона
 async function loadAuction() {
     try {
         document.getElementById("itemName").innerText = await contract.itemName();
         document.getElementById("description").innerText = await contract.description();
 
-        updateData();
+        await updateData();
         setInterval(updateData, 5000); // обновление каждые 5 сек
     } catch (err) {
         console.error("Ошибка загрузки аукциона:", err);
     }
 }
 
-// Обновление динамических данных
 async function updateData() {
     try {
         const [highestBid, bidder, endTime] = await Promise.all([
@@ -157,10 +169,11 @@ async function updateData() {
         ]);
 
         document.getElementById("highestBid").innerText =
-            ethers.formatEther(highestBid) + " ETH";
+            ethers.utils.formatEther(highestBid) + " ETH";
 
+        const zeroAddress = "0x0000000000000000000000000000000000000000";
         document.getElementById("highestBidder").innerText =
-            bidder === ethers.ZeroAddress
+            bidder === zeroAddress
                 ? "—"
                 : bidder.slice(0, 6) + "..." + bidder.slice(-4);
 
@@ -171,6 +184,7 @@ async function updateData() {
         if (diff > 0) {
             timeLeftEl.innerText = diff + " сек";
             bidBtn.disabled = false;
+            bidBtn.innerText = "Сделать ставку";
         } else {
             timeLeftEl.innerText = "Аукцион завершён";
             bidBtn.disabled = true;
@@ -183,7 +197,6 @@ async function updateData() {
     }
 }
 
-// Загрузка истории ставок (без реверта при выходе за границы)
 async function loadHistory() {
     const list = document.getElementById("history");
     list.innerHTML = "<li>Загрузка...</li>";
@@ -191,10 +204,13 @@ async function loadHistory() {
     const items = [];
     let index = 0;
 
-    // Пробуем читать по индексу, пока не получим ошибку (выход за границы)
     while (true) {
         try {
             const bid = await contract.bidHistory(index);
-            // Если bidder = 0x000... и amount = 0 — вероятно, пустой элемент
-            if (bid.bidder === ethers.ZeroAddress && bid.amount === 0n) {
-                break
+            
+            const zeroAddress = "0x0000000000000000000000000000000000000000";
+            if (bid.bidder === zeroAddress && bid.amount.eq(0)) {
+                break;
+            }
+
+            items.pu
