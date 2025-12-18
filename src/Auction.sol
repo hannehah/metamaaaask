@@ -38,14 +38,14 @@ contract Auction {
         require(block.timestamp < endTime, "Auction has ended");
         require(!ended, "Auction already ended");
 
-        // Минимальная ставка
+       
         if (highestBid == 0) {
             require(msg.value >= MIN_BID, "Bid below minimum");
         } else {
             require(msg.value > highestBid, "Bid too low");
         }
 
-        // Возврат предыдущей ставки
+        
         if (highestBidder != address(0)) {
             pendingReturns[highestBidder] += highestBid;
         }
