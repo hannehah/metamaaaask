@@ -114,9 +114,11 @@ const abi = [
 
 const connectBtn = document.getElementById("connectBtn");
 const bidBtn = document.getElementById("bidBtn");
+const bidAmountInput = document.getElementById("bidAmount");
 
 bidBtn.disabled = true;
 bidBtn.innerText = "Подключите кошелёк";
+bidAmountInput.disabled = true; // Блокируем поле до подключения
 
 connectBtn.onclick = async () => {
     if (!window.ethereum) {
@@ -139,12 +141,54 @@ connectBtn.onclick = async () => {
 
         bidBtn.disabled = false;
         bidBtn.innerText = "Сделать ставку";
+        bidAmountInput.disabled = false;
 
         await loadAuction();
     } catch (err) {
         alert("Ошибка подключения: " + (err.message || err));
         connectBtn.disabled = false;
         connectBtn.innerText = "Подключить кошелёк";
+    }
+};
+
+bidBtn.onclick = async () => {
+    if (!contract) {
+        alert("Сначала подключите кошелёк");
+        return;
+    }
+
+    let amountStr = bidAmountInput.value.trim();
+    if (!amountStr) {
+        alert("Введите сумму ставки");
+        return;
+    }
+
+    let amountWei;
+    try {
+        amountWei = ethers.utils.parseEther(amountStr);
+    } catch (e) {
+        alert("Неверный формат суммы ставки. Используйте десятичный формат, например 0.005");
+        return;
+    }
+
+    try {
+        bidBtn.disabled = true;
+        bidBtn.innerText = "Отправка...";
+
+        const tx = await contract.bid({ value: amountWei });
+        await tx.wait();
+
+        alert("Ставка сделана успешно!");
+
+        bidAmountInput.value = ""; // очистить поле ввода после успешной ставки
+        await updateData();
+
+        bidBtn.disabled = false;
+        bidBtn.innerText = "Сделать ставку";
+    } catch (err) {
+        alert("Ошибка при ставке: " + (err.message || err));
+        bidBtn.disabled = false;
+        bidBtn.innerText = "Сделать ставку";
     }
 };
 
@@ -185,10 +229,12 @@ async function updateData() {
             timeLeftEl.innerText = diff + " сек";
             bidBtn.disabled = false;
             bidBtn.innerText = "Сделать ставку";
+            bidAmountInput.disabled = false;
         } else {
             timeLeftEl.innerText = "Аукцион завершён";
             bidBtn.disabled = true;
             bidBtn.innerText = "Аукцион завершён";
+            bidAmountInput.disabled = true;
         }
 
         await loadHistory();
