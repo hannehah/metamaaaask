@@ -207,10 +207,20 @@ async function loadHistory() {
     while (true) {
         try {
             const bid = await contract.bidHistory(index);
-            
+
             const zeroAddress = "0x0000000000000000000000000000000000000000";
             if (bid.bidder === zeroAddress && bid.amount.eq(0)) {
                 break;
             }
 
-            items.pu
+            items.push(
+                `<li><strong>${bid.bidder.slice(0,6)}...${bid.bidder.slice(-4)}</strong> — ${ethers.utils.formatEther(bid.amount)} ETH — ${new Date(bid.timestamp.toNumber() * 1000).toLocaleString()}</li>`
+            );
+            index++;
+        } catch (e) {
+            break;
+        }
+    }
+
+    list.innerHTML = items.length ? items.join("") : "<li>Ставок нет</li>";
+}
