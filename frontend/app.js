@@ -1,6 +1,6 @@
 let provider, signer, contract;
 
-const contractAddress = "0xfa688f4900f58a57fee6c952da6d07dc400c058034e1de7aab27b70a78f0cdd4";
+const contractAddress = "0xf9697C1d29dc84d1236Bd559131f486B9344541f"; 
 const abi = [
   {
     "type": "constructor",
@@ -121,9 +121,9 @@ connectBtn.onclick = async () => {
         return;
     }
 
-    provider = new ethers.providers.Web3Provider(window.ethereum);
+    provider = new ethers.BrowserProvider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
-    signer = provider.getSigner();
+    signer = await provider.getSigner();
 
     contract = new ethers.Contract(contractAddress, abi, signer);
 
@@ -145,13 +145,15 @@ async function updateData() {
     const endTime = await contract.endTime();
 
     document.getElementById("highestBid").innerText =
-        ethers.utils.formatEther(highestBid) + " ETH";
+        ethers.formatEther(highestBid) + " ETH";
 
     document.getElementById("highestBidder").innerText =
-        bidder.slice(0, 6) + "..." + bidder.slice(-4);
+        bidder === ethers.ZeroAddress
+            ? "—"
+            : bidder.slice(0, 6) + "..." + bidder.slice(-4);
 
     const now = Math.floor(Date.now() / 1000);
-    const diff = endTime - now;
+    const diff = Number(endTime) - now;
 
     document.getElementById("timeLeft").innerText =
         diff > 0 ? diff + " сек" : "Аукцион завершён";
@@ -168,7 +170,7 @@ async function loadHistory() {
             const bid = await contract.bidHistory(i);
             const li = document.createElement("li");
             li.innerText =
-                `${bid.bidder.slice(0,6)}… — ${ethers.utils.formatEther(bid.amount)} ETH`;
+                `${bid.bidder.slice(0,6)}… — ${ethers.formatEther(bid.amount)} ETH`;
             list.appendChild(li);
         } catch {
             break;
@@ -177,10 +179,16 @@ async function loadHistory() {
 }
 
 bidBtn.onclick = async () => {
-    const amount = document.getElementById("bidAmount").value;
+    const amount = document.getElementById("bidAmount").value.replace(",", ".");
     if (!amount) return;
 
-    await contract.bid({
-        value: ethers.utils.parseEther(amount)
-    });
+    try {
+        const tx = await contract.bid({
+            value: ethers.parseEther(amount)
+        });
+        await tx.wait();
+        updateData();
+    } catch (err) {
+        alert(err.reason || err.message);
+    }
 };
