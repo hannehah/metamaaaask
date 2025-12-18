@@ -1,3 +1,4 @@
+// script/DeployAuction.s.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
@@ -7,13 +8,13 @@ import "../src/Auction.sol";
 contract DeployAuction is Script {
     function run() external {
         vm.startBroadcast();
-
-        new Auction(
-            "Rare Artwork",
-            "Description of the auction item",
-            86400
+        Auction auction = new Auction(
+            "ChainBid",
+            "Decentralized auction",
+            3600
         );
-
         vm.stopBroadcast();
+
+        console2.log("Auction deployed at:", address(auction));
     }
 }
