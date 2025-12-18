@@ -5,9 +5,13 @@ contract Auction {
     string public itemName;
     string public description;
     uint public endTime;
+
     uint public highestBid;
     address public highestBidder;
     address public owner;
+
+    uint public constant MIN_BID = 0.005 ether;
+    bool public ended;
 
     mapping(address => uint) public pendingReturns;
 
@@ -32,8 +36,16 @@ contract Auction {
 
     function bid() external payable {
         require(block.timestamp < endTime, "Auction has ended");
-        require(msg.value > highestBid, "Bid too low");
+        require(!ended, "Auction already ended");
 
+        // Минимальная ставка
+        if (highestBid == 0) {
+            require(msg.value >= MIN_BID, "Bid below minimum");
+        } else {
+            require(msg.value > highestBid, "Bid too low");
+        }
+
+        // Возврат предыдущей ставки
         if (highestBidder != address(0)) {
             pendingReturns[highestBidder] += highestBid;
         }
@@ -57,7 +69,10 @@ contract Auction {
     function auctionEnd() external {
         require(block.timestamp >= endTime, "Auction not ended");
         require(msg.sender == owner, "Only owner");
-        require(highestBid > 0, "No bids");
+        require(!ended, "Auction already ended");
+        require(highestBid >= MIN_BID, "No valid bids");
+
+        ended = true;
 
         (bool success, ) = payable(owner).call{value: highestBid}("");
         require(success, "Transfer failed");
