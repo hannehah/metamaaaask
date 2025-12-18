@@ -118,7 +118,7 @@ const bidAmountInput = document.getElementById("bidAmount");
 
 bidBtn.disabled = true;
 bidBtn.innerText = "Подключите кошелёк";
-bidAmountInput.disabled = true; // Блокируем поле до подключения
+bidAmountInput.disabled = true; 
 
 connectBtn.onclick = async () => {
     if (!window.ethereum) {
@@ -180,7 +180,7 @@ bidBtn.onclick = async () => {
 
         alert("Ставка сделана успешно!");
 
-        bidAmountInput.value = ""; // очистить поле ввода после успешной ставки
+        bidAmountInput.value = ""; 
         await updateData();
 
         bidBtn.disabled = false;
